@@ -2,8 +2,8 @@
 
 import useClickOutside from "@/hooks/useClickOutside";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
-import { ArrowLeftIcon } from 'lucide-react';
-import { useRef, useState, useEffect, useId } from "react";
+import { ArrowLeftIcon } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 
 const TRANSITION = {
   type: "spring",
@@ -28,7 +28,6 @@ export default function Popover({
   children,
   triggerRef,
 }: PopoverProps) {
-  const uniqueId = useId();
   const formContainerRef = useRef<HTMLDivElement>(null);
   const [note, setNote] = useState<string>(initialNote || "");
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -42,8 +41,10 @@ export default function Popover({
       const rect = triggerRef.current.getBoundingClientRect();
       const isRightAligned = rect.right + 320 > window.innerWidth;
       setPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: isRightAligned ? rect.left + window.scrollX - 320 + rect.width : rect.left + window.scrollX,
+        top: rect.bottom + window.scrollY - 200,
+        left: isRightAligned
+          ? rect.left + window.scrollX - 320 + rect.width
+          : rect.left + window.scrollX,
       });
     }
   }, [isOpen, triggerRef]);
@@ -129,4 +130,3 @@ export default function Popover({
     </MotionConfig>
   );
 }
-

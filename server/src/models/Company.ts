@@ -17,8 +17,13 @@ const companySchema = new mongoose.Schema(
         },
         emails: {
             type: [String],
-            required: false,
-            default: []
+            required: true,
+            validate: {
+                validator: function (emails: string[]) {
+                    return emails && emails.length > 0;
+                },
+                message: "At least one email address is required",
+            },
         },
         phoneNumbers: {
             type: [String],

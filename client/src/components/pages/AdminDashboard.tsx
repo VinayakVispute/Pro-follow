@@ -1,26 +1,26 @@
 import React, { useState } from "react";
-import { Plus, Building2, MapPin, Activity } from "lucide-react";
+import { Building2, MapPin, Activity } from "lucide-react";
 import CompanyCard from "../shared/CompanyCard";
+import AddCompanyDialog from "../shared/AddCompanyDialog";
+import { Button } from "../ui/button";
 
 interface Company {
   id: number;
   name: string;
   location: string;
-  status: "active" | "pending";
   linkedinProfile?: string;
   emails: string[];
   phoneNumbers: string[];
   notes?: string;
+  communicationPeriodicity: string;
 }
 
 const AdminDashboard: React.FC = () => {
-  const [showForm, setShowForm] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([
     {
       id: 1,
       name: "Acme Corp",
       location: "New York",
-      status: "active",
       linkedinProfile: "https://www.linkedin.com/company/acme-corp",
       emails: [
         "info@acmecorp.com",
@@ -45,122 +45,105 @@ const AdminDashboard: React.FC = () => {
         "+1 (555) 987-6543",
       ],
       notes: "Great potential for partnership",
+      communicationPeriodicity: "monthly",
     },
     {
       id: 2,
       name: "Globex Inc",
       location: "London",
-      status: "active",
       linkedinProfile: "https://www.linkedin.com/company/globex-inc",
       emails: ["contact@globexinc.com"],
       phoneNumbers: ["+44 20 1234 5678"],
+      notes: "Great potential for partnership",
+      communicationPeriodicity: "monthly",
     },
     {
       id: 3,
       name: "Stark Industries",
       location: "California",
-      status: "pending",
       emails: ["info@stark.com", "hr@stark.com"],
       phoneNumbers: ["+1 (555) 555-5555"],
       notes: "Pending approval from legal team",
+      communicationPeriodicity: "monthly",
     },
   ]);
-  const [formData, setFormData] = useState({ name: "", location: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newCompany = {
-      id: companies.length + 1,
-      name: formData.name,
-      location: formData.location,
-      status: "pending" as const,
-      emails: [],
-      phoneNumbers: [],
-    };
-    setCompanies([...companies, newCompany]);
-    setFormData({ name: "", location: "" });
-    setShowForm(false);
-  };
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const handleUpdateNotes = (id: number, notes: string) => {
+  const handleUpdateCompany = (
+    id: number,
+    updatedCompany: Partial<Company>
+  ) => {
     setCompanies(
       companies.map((company) =>
-        company.id === id ? { ...company, notes } : company
+        company.id === id ? { ...company, ...updatedCompany } : company
       )
     );
+  };
+
+  const handleDeleteCompany = (id: number) => {
+    setCompanies(companies.filter((company) => company.id !== id));
+  };
+  const handleAddCompany = (newCompany: Partial<Company>) => {
+    const companyWithId = {
+      ...newCompany,
+      id: Date.now(), // Use a timestamp as a simple unique id
+    } as Company;
+    setCompanies([...companies, companyWithId]);
+  };
+  const handleUpdateNotes = (id: number, notes: string) => {
+    handleUpdateCompany(id, { notes });
   };
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 ml-auto flex items-center"
           >
-            <Plus className="inline-block w-4 h-4 mr-2" />
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              ></path>
+            </svg>
             Add Company
-          </button>
+          </Button>
         </div>
+        <AddCompanyDialog
+          onAddCompany={handleAddCompany}
+          isOpen={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          mode="add"
+          initialData={null}
+        />
+        <AddCompanyDialog
+          onAddCompany={(updatedCompany) => {
+            if (editingCompany) {
+              handleUpdateCompany(editingCompany.id, updatedCompany);
+              setEditingCompany(null);
+            }
+          }}
+          isOpen={!!editingCompany}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setEditingCompany(null);
+          }}
+          initialData={editingCompany}
+          mode="edit"
+        />
       </div>
-
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-medium mb-4">Add New Company</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Company Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="location"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Location
-              </label>
-              <input
-                type="text"
-                id="location"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Add Company
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white p-6 rounded-lg shadow">
@@ -182,7 +165,7 @@ const AdminDashboard: React.FC = () => {
             <Activity className="w-8 h-8 text-green-500" />
           </div>
           <p className="mt-2 text-3xl font-bold text-gray-900">
-            {companies.filter((c) => c.status === "active").length}
+            {/* {companies.filter((c) => c.status === "active").length} */}0
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
@@ -193,7 +176,7 @@ const AdminDashboard: React.FC = () => {
             <MapPin className="w-8 h-8 text-yellow-500" />
           </div>
           <p className="mt-2 text-3xl font-bold text-gray-900">
-            {companies.filter((c) => c.status === "pending").length}
+            {/* {companies.filter((c) => c.status === "pending").length} */}0
           </p>
         </div>
       </div>
@@ -204,6 +187,8 @@ const AdminDashboard: React.FC = () => {
             key={company.id}
             company={company}
             onUpdateNotes={handleUpdateNotes}
+            onDeleteCompany={handleDeleteCompany}
+            onUpdateCompany={handleUpdateCompany}
           />
         ))}
       </div>
