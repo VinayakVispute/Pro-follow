@@ -1,69 +1,80 @@
-import React, { useEffect, useRef } from "react";
-import { Menu, Search, Bell } from "lucide-react";
+import { Link, Links } from "react-router";
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/clerk-react";
+import { Building2 } from "lucide-react";
+import { Button } from "../ui/button";
 
-import ProfileInfo from "./ProfileCard";
-
-interface NavbarProps {
-  onMenuButtonClick: () => void;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ onMenuButtonClick }) => {
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "k") {
-        event.preventDefault(); // Prevent the default browser action
-        searchInputRef.current?.focus(); // Focus the search input
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
+export default function Navbar() {
   return (
-    <header className="bg-white shadow-sm">
-      <div className="flex items-center justify-between h-16 px-4">
-        <button
-          onClick={onMenuButtonClick}
-          className="text-gray-500 hover:text-gray-700 lg:hidden"
-        >
-          <Menu size={24} />
-        </button>
-        <div className="flex items-center space-x-4">
-          <ProfileInfo />
-        </div>
-        <div className="flex-1 items-center px-4 space-x-4">
-          <div className="relative max-w-xl">
-            <input
-              type="text"
-              placeholder="Search..."
-              ref={searchInputRef} // Attach the ref to the input
-              className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-100 rounded-full focus:outline-none"
-            />
-            <Search
-              className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2">
-              <kbd className="inline-flex h-10 w-10 max-h-full items-center font-[inherit] font-thin text-gray-600">
-                <span className="text-xl">⌘</span>K
-              </kbd>
+    <nav className="bg-white/80 backdrop-blur-md dark:bg-gray-900/80 sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                ProFollow
+              </span>
+            </Link>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <Link
+                to="/features"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Features
+              </Link>
+              <Link
+                to="/pricing"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Pricing
+              </Link>
+              <Link
+                to="/about"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                About
+              </Link>
             </div>
           </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button className="text-gray-500 hover:text-gray-700">
-            <Bell size={24} />
-          </button>
+          <div className="flex items-center">
+            <SignedIn>
+              <Link
+                to="/dashboard"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium mr-4"
+              >
+                Dashboard
+              </Link>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
+            </SignedIn>
+            <SignedOut>
+              <Link
+                to="/SignIn"
+                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/SignUp"
+                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Sign Up
+              </Link>
+            </SignedOut>
+          </div>
         </div>
       </div>
-    </header>
+    </nav>
   );
-};
-
-export default Navbar;
+}

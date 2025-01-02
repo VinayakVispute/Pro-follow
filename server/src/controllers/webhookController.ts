@@ -26,6 +26,12 @@ const handleUserCreated = async (data: any) => {
                 userId: newUser._id.toString(),
             },
         });
+
+        await clerkClient.users.updateUserMetadata(id, {
+            publicMetadata: {
+                role: "user",
+            }
+        })
     }
 };
 

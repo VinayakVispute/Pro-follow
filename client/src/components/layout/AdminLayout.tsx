@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Sidebar from "../shared/Sidebar";
-import Navbar from "../shared/Navbar";
+import Navbar from "../shared/AdminNavbar";
 
 interface LayoutProps {
   children: React.ReactNode;
