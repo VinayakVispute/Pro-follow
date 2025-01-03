@@ -1,18 +1,13 @@
 import { SignUp, useAuth } from "@clerk/clerk-react";
 
 import { useNavigate } from "react-router";
+import Spinner from "../shared/Spinner";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
   const { isLoaded } = useAuth();
 
-  if (!isLoaded) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  if (!isLoaded) return <Spinner />;
 
   return (
     <div className="flex h-screen w-screen justify-center bg-white">

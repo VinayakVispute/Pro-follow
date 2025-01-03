@@ -2,7 +2,9 @@ import "./index.css";
 import { Route, Routes } from "react-router";
 
 import AdminLayout from "./components/layout/AdminLayout";
+import UserLayout from "./components/layout/UserLayout";
 import AdminDashboardPage from "./components/pages/AdminDashboard";
+import UserDashboardPage from "./components/pages/UserDashboard";
 import CommunicationMethodsPage from "./components/pages/CommunicationMethod";
 import ProfilePage from "./components/pages/Profile";
 import HomePage from "./components/pages/HomePage";
@@ -10,6 +12,8 @@ import Navbar from "./components/shared/Navbar";
 import SignUpPage from "./components/pages/SignUp";
 import SignInPage from "./components/pages/SignIn";
 import AuthRedirectLayout from "./components/layout/AuthRedirect";
+import CommunicationCalendar from "./components/shared/Calendar";
+import { Notifications } from "./components/pages/Notifications";
 
 function App() {
   return (
@@ -35,10 +39,34 @@ function App() {
           }
         />
         <Route
+          path="/Home"
+          element={
+            <UserLayout>
+              <UserDashboardPage />
+            </UserLayout>
+          }
+        />
+        <Route
+          path="/Calendar"
+          element={
+            <UserLayout>
+              <CommunicationCalendar />
+            </UserLayout>
+          }
+        />
+        <Route
           path="/CommunicationMethods"
           element={
             <AdminLayout>
               <CommunicationMethodsPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/Notifications"
+          element={
+            <AdminLayout>
+              <Notifications />
             </AdminLayout>
           }
         />

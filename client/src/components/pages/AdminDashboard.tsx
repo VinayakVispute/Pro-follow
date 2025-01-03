@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Building2, MapPin, Activity } from "lucide-react";
 import CompanyCard from "../shared/CompanyCard";
 import AddCompanyDialog from "../shared/AddCompanyDialog";
 import { Button } from "../ui/button";
+import axios from "axios";
+import Spinner from "../shared/Spinner";
+import { useAuth } from "@clerk/clerk-react";
 
 interface Company {
   id: number;
@@ -16,60 +19,56 @@ interface Company {
 }
 
 const AdminDashboard: React.FC = () => {
-  const [companies, setCompanies] = useState<Company[]>([
-    {
-      id: 1,
-      name: "Acme Corp",
-      location: "New York",
-      linkedinProfile: "https://www.linkedin.com/company/acme-corp",
-      emails: [
-        "info@acmecorp.com",
-        "support@acmecorp.com",
-        "info@acmecorp.com",
-        "support@acmecorp.com",
-        "info@acmecorp.com",
-        "support@acmecorp.com",
-      ],
-      phoneNumbers: [
-        "+1 (555) 123-4567",
-        "+1 (555) 987-6543",
-        "+1 (555) 123-4567",
-        "+1 (555) 987-6543",
-        "+1 (555) 123-4567",
-        "+1 (555) 987-6543",
-        "+1 (555) 123-4567",
-        "+1 (555) 987-6543",
-        "+1 (555) 123-4567",
-        "+1 (555) 987-6543",
-        "+1 (555) 123-4567",
-        "+1 (555) 987-6543",
-      ],
-      notes: "Great potential for partnership",
-      communicationPeriodicity: "monthly",
-    },
-    {
-      id: 2,
-      name: "Globex Inc",
-      location: "London",
-      linkedinProfile: "https://www.linkedin.com/company/globex-inc",
-      emails: ["contact@globexinc.com"],
-      phoneNumbers: ["+44 20 1234 5678"],
-      notes: "Great potential for partnership",
-      communicationPeriodicity: "monthly",
-    },
-    {
-      id: 3,
-      name: "Stark Industries",
-      location: "California",
-      emails: ["info@stark.com", "hr@stark.com"],
-      phoneNumbers: ["+1 (555) 555-5555"],
-      notes: "Pending approval from legal team",
-      communicationPeriodicity: "monthly",
-    },
-  ]);
-
+  const BASE_URL = import.meta.env.VITE_SERVER_BASE_URL;
+  const { isSignedIn, getToken, isLoaded } = useAuth();
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const fetchCompanies = async () => {
+    try {
+      setIsLoading(true);
+
+      // 2. Retrieve the Clerk token
+      const token = await getToken();
+      if (!token) {
+        console.warn("No token found.");
+        return;
+      }
+
+      // 3. Make the request with the Authorization header
+      const response = await axios.get(`${BASE_URL}/api/companies`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setCompanies(response.data.data);
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      setCompanies([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Only proceed if Clerk is loaded and user is signed in
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      console.warn("User is not signed in.");
+      return;
+    }
+    fetchCompanies();
+    return () => {
+      setCompanies([]);
+    };
+  }, [isLoaded, isSignedIn]);
 
   const handleUpdateCompany = (
     id: number,
@@ -95,6 +94,10 @@ const AdminDashboard: React.FC = () => {
   const handleUpdateNotes = (id: number, notes: string) => {
     handleUpdateCompany(id, { notes });
   };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -165,7 +168,7 @@ const AdminDashboard: React.FC = () => {
             <Activity className="w-8 h-8 text-green-500" />
           </div>
           <p className="mt-2 text-3xl font-bold text-gray-900">
-            {/* {companies.filter((c) => c.status === "active").length} */}0
+            {/* {companies.filter((c) => c.status === "active").length} */}-
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
@@ -176,7 +179,7 @@ const AdminDashboard: React.FC = () => {
             <MapPin className="w-8 h-8 text-yellow-500" />
           </div>
           <p className="mt-2 text-3xl font-bold text-gray-900">
-            {/* {companies.filter((c) => c.status === "pending").length} */}0
+            {/* {companies.filter((c) => c.status === "pending").length} */}-
           </p>
         </div>
       </div>

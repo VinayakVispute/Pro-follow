@@ -1,12 +1,5 @@
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
-import {
-  ArrowRight,
-  BarChart2,
-  Clock,
-  Users2,
-  Building2,
-  MessageSquareMore,
-} from "lucide-react";
+import { ArrowRight, Clock, Users2, MessageSquareMore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {

@@ -1,12 +1,6 @@
-import { Link, Links } from "react-router";
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  SignInButton,
-} from "@clerk/clerk-react";
+import { Link } from "react-router";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 import { Building2 } from "lucide-react";
-import { Button } from "../ui/button";
 
 export default function Navbar() {
   return (
