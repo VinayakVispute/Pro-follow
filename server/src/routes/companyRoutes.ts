@@ -15,7 +15,7 @@ router.post("/", createCompany);
 router.get("/", getAllCompanies);
 
 // Update a company by ID
-router.put("/:id", updateCompany);
+router.patch("/:id", updateCompany);
 
 // Delete a company by ID
 router.delete("/:id", deleteCompany);

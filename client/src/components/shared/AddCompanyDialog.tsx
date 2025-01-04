@@ -21,7 +21,7 @@ import {
 import { Building2, X } from "lucide-react";
 
 interface Company {
-  id: number;
+  _id: string;
   name: string;
   location: string;
   linkedinProfile?: string;

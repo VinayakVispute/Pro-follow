@@ -29,7 +29,7 @@ import {
 import AddCompanyDialog from "./AddCompanyDialog";
 
 interface Company {
-  id: number;
+  _id: string;
   name: string;
   location: string;
   linkedinProfile?: string;
@@ -41,9 +41,9 @@ interface Company {
 
 interface CompanyCardProps {
   company: Company;
-  onUpdateNotes: (id: number, notes: string) => void;
-  onDeleteCompany: (id: number) => void;
-  onUpdateCompany: (id: number, updatedCompany: Partial<Company>) => void;
+  onUpdateNotes: (_id: string, notes: string) => void;
+  onDeleteCompany: (_id: string) => void;
+  onUpdateCompany: (_id: string, updatedCompany: Partial<Company>) => void;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
@@ -62,17 +62,17 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
     company.emails.length > 2 || company.phoneNumbers.length > 2;
 
   const handleNotesUpdate = (notes: string) => {
-    onUpdateNotes(company.id, notes);
+    onUpdateNotes(company._id, notes);
     setIsNotesOpen(false);
   };
 
   const handleDelete = () => {
-    onDeleteCompany(company.id);
+    onDeleteCompany(company._id);
     setIsDeleteDialogOpen(false);
   };
 
   const handleUpdateCompany = (updatedCompany: Partial<Company>) => {
-    onUpdateCompany(company.id, updatedCompany);
+    onUpdateCompany(company._id, updatedCompany);
     setIsEditDialogOpen(false);
   };
 

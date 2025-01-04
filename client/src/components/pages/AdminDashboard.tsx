@@ -3,15 +3,15 @@ import { Building2, MapPin, Activity } from "lucide-react";
 import CompanyCard from "../shared/CompanyCard";
 import AddCompanyDialog from "../shared/AddCompanyDialog";
 import { Button } from "../ui/button";
-import axios from "axios";
 import Spinner from "../shared/Spinner";
 import { useAuth } from "@clerk/clerk-react";
+import { useApiClient } from "../../hooks/useApiClient";
 
 interface Company {
-  id: number;
+  _id: string;
   name: string;
   location: string;
-  linkedinProfile?: string;
+  linkedInProfile?: string;
   emails: string[];
   phoneNumbers: string[];
   notes?: string;
@@ -19,30 +19,18 @@ interface Company {
 }
 
 const AdminDashboard: React.FC = () => {
-  const BASE_URL = import.meta.env.VITE_SERVER_BASE_URL;
-  const { isSignedIn, getToken, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
+  const apiClient = useApiClient();
   const fetchCompanies = async () => {
     try {
       setIsLoading(true);
 
       // 2. Retrieve the Clerk token
-      const token = await getToken();
-      if (!token) {
-        console.warn("No token found.");
-        return;
-      }
-
-      // 3. Make the request with the Authorization header
-      const response = await axios.get(`${BASE_URL}/api/companies`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.get("/api/companies");
 
       if (response.data.success) {
         setCompanies(response.data.data);
@@ -70,28 +58,51 @@ const AdminDashboard: React.FC = () => {
     };
   }, [isLoaded, isSignedIn]);
 
-  const handleUpdateCompany = (
-    id: number,
+  const handleUpdateCompany = async (
+    id: string,
     updatedCompany: Partial<Company>
   ) => {
+    const response = await apiClient.patch(
+      `/api/companies/${id}`,
+      updatedCompany
+    );
+    if (!response.data.success) {
+      console.error("Error updating company:", response.data.message);
+      return;
+    }
     setCompanies(
       companies.map((company) =>
-        company.id === id ? { ...company, ...updatedCompany } : company
+        company._id === response.data.data._id
+          ? { ...company, ...updatedCompany }
+          : company
       )
     );
   };
 
-  const handleDeleteCompany = (id: number) => {
-    setCompanies(companies.filter((company) => company.id !== id));
+  const handleDeleteCompany = async (id: string) => {
+    const response = await apiClient.delete(`/api/companies/${id}`);
+    if (!response.data.success) {
+      console.error("Error deleting company:", response.data.message);
+      return;
+    }
+    setCompanies(
+      companies.filter((company) => company._id !== response.data.data._id)
+    );
   };
-  const handleAddCompany = (newCompany: Partial<Company>) => {
-    const companyWithId = {
-      ...newCompany,
-      id: Date.now(), // Use a timestamp as a simple unique id
-    } as Company;
-    setCompanies([...companies, companyWithId]);
+  const handleAddCompany = async (newCompany: Partial<Company>) => {
+    try {
+      const response = await apiClient.post("/api/companies", newCompany);
+      if (!response.data.success) {
+        console.error("Error adding company:", response.data.message);
+        return;
+      }
+      setCompanies([...companies, response.data.data]);
+    } catch (error) {
+      console.error("Error adding company:", error);
+    }
   };
-  const handleUpdateNotes = (id: number, notes: string) => {
+
+  const handleUpdateNotes = (id: string, notes: string) => {
     handleUpdateCompany(id, { notes });
   };
 
@@ -135,7 +146,7 @@ const AdminDashboard: React.FC = () => {
         <AddCompanyDialog
           onAddCompany={(updatedCompany) => {
             if (editingCompany) {
-              handleUpdateCompany(editingCompany.id, updatedCompany);
+              handleUpdateCompany(editingCompany._id, updatedCompany);
               setEditingCompany(null);
             }
           }}
@@ -187,7 +198,7 @@ const AdminDashboard: React.FC = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {companies.map((company) => (
           <CompanyCard
-            key={company.id}
+            key={company._id}
             company={company}
             onUpdateNotes={handleUpdateNotes}
             onDeleteCompany={handleDeleteCompany}

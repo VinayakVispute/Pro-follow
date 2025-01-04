@@ -6,7 +6,7 @@ const companySchema = new mongoose.Schema(
             type: String,
             required: [true, "Company name is required"],
         },
-        locaion: {
+        location: {
             type: String,
             required: [true, "Company location is required"],
         },
@@ -15,6 +15,7 @@ const companySchema = new mongoose.Schema(
             required: false,
             default: null,
         },
+
         emails: {
             type: [String],
             required: true,
@@ -31,7 +32,7 @@ const companySchema = new mongoose.Schema(
             default: []
 
         },
-        comments: {
+        notes: {
             type: String,
             required: false,
         },

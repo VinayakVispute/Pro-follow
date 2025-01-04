@@ -138,6 +138,8 @@ export const deleteCompany = async (req: Request, res: Response): Promise<void> 
         res.status(200).json({
             success: true,
             message: "Company deleted successfully.",
+            data: deletedCompany
+
         });
     } catch (error: any) {
         console.error("Error deleting company:", error);
