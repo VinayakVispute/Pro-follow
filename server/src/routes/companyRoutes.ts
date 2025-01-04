@@ -1,9 +1,10 @@
 import express from "express";
 import {
-    createCompany,
-    getAllCompanies,
-    updateCompany,
-    deleteCompany,
+  createCompany,
+  getAllCompanies,
+  updateCompany,
+  deleteCompany,
+  searchCompany,
 } from "../controllers/companyController";
 
 const router = express.Router();
@@ -19,5 +20,8 @@ router.patch("/:id", updateCompany);
 
 // Delete a company by ID
 router.delete("/:id", deleteCompany);
+
+//Search the company
+router.get("/search", searchCompany);
 
 export default router;

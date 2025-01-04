@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Building2, MapPin, Activity } from "lucide-react";
 import CompanyCard from "../shared/CompanyCard";
 import AddCompanyDialog from "../shared/AddCompanyDialog";
 import { Button } from "../ui/button";
-import Spinner from "../shared/Spinner";
-import { useAuth } from "@clerk/clerk-react";
-import { useApiClient } from "../../hooks/useApiClient";
 
-interface Company {
+import { useCompanyContext } from "@/context/CompanyContext";
+
+export interface Company {
   _id: string;
   name: string;
   location: string;
@@ -19,96 +18,15 @@ interface Company {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { isSignedIn, isLoaded } = useAuth();
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const apiClient = useApiClient();
-  const fetchCompanies = async () => {
-    try {
-      setIsLoading(true);
-
-      // 2. Retrieve the Clerk token
-      const response = await apiClient.get("/api/companies");
-
-      if (response.data.success) {
-        setCompanies(response.data.data);
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (error) {
-      console.error("Error fetching companies:", error);
-      setCompanies([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Only proceed if Clerk is loaded and user is signed in
-    if (!isLoaded) return;
-    if (!isSignedIn) {
-      console.warn("User is not signed in.");
-      return;
-    }
-    fetchCompanies();
-    return () => {
-      setCompanies([]);
-    };
-  }, [isLoaded, isSignedIn]);
-
-  const handleUpdateCompany = async (
-    id: string,
-    updatedCompany: Partial<Company>
-  ) => {
-    const response = await apiClient.patch(
-      `/api/companies/${id}`,
-      updatedCompany
-    );
-    if (!response.data.success) {
-      console.error("Error updating company:", response.data.message);
-      return;
-    }
-    setCompanies(
-      companies.map((company) =>
-        company._id === response.data.data._id
-          ? { ...company, ...updatedCompany }
-          : company
-      )
-    );
-  };
-
-  const handleDeleteCompany = async (id: string) => {
-    const response = await apiClient.delete(`/api/companies/${id}`);
-    if (!response.data.success) {
-      console.error("Error deleting company:", response.data.message);
-      return;
-    }
-    setCompanies(
-      companies.filter((company) => company._id !== response.data.data._id)
-    );
-  };
-  const handleAddCompany = async (newCompany: Partial<Company>) => {
-    try {
-      const response = await apiClient.post("/api/companies", newCompany);
-      if (!response.data.success) {
-        console.error("Error adding company:", response.data.message);
-        return;
-      }
-      setCompanies([...companies, response.data.data]);
-    } catch (error) {
-      console.error("Error adding company:", error);
-    }
-  };
-
-  const handleUpdateNotes = (id: string, notes: string) => {
-    handleUpdateCompany(id, { notes });
-  };
-
-  if (isLoading) {
-    return <Spinner />;
-  }
+  const {
+    companies,
+    handleAddCompany,
+    handleUpdateCompany,
+    handleDeleteCompany,
+    handleUpdateNotes,
+  } = useCompanyContext();
 
   return (
     <div className="p-6 space-y-6">
