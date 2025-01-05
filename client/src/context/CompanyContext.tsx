@@ -153,12 +153,6 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleAssignCompany = async (companyId: string, userId: string) => {
-    console.log(
-      "handleAssignCompany: Assigning company ID:",
-      companyId,
-      "to user ID:",
-      userId
-    );
     try {
       const response = await apiClient.post("/api/companies/assign", {
         userId: userId,
@@ -173,14 +167,11 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      console.log(
-        "handleAssignCompany: Successfully assigned company:",
-        response.data.data
-      );
+      const assignedUser = response?.data?.data?.assignedTo;
       setCompanies((prevCompanies) =>
         prevCompanies.map((company) =>
           company._id === companyId
-            ? { ...company, assignedTo: userId }
+            ? { ...company, assignedTo: assignedUser }
             : company
         )
       );

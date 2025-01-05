@@ -260,13 +260,20 @@ export const assignUserToCompany = async (req: Request, res: Response) => {
     }
     company.assignedTo = userId;
 
-    const updatedCompany = await company.save();
-    console.log("User assigned to company successfully:", updatedCompany);
+    await company.save();
+
+    // Fetch updated company with populated assignedTo field
+    const populatedCompany = await Company.findById(companyId).populate({
+      path: "assignedTo",
+      model: User,
+      select: "firstName lastName _id",
+    });
+    console.log("User assigned to company successfully:", populatedCompany);
 
     res.status(200).json({
       success: true,
       message: "User assigned to company successfully.",
-      data: updatedCompany,
+      data: populatedCompany,
     });
   } catch (error: any) {
     console.error("Error assigning user to company:", error);
