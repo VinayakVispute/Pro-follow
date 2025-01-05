@@ -13,7 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex h-screen bg-gray-100">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar onMenuButtonClick={() => setSidebarOpen(true)} />
+        {/* <Navbar onMenuButtonClick={() => setSidebarOpen(true)} /> */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
           {children}
         </main>

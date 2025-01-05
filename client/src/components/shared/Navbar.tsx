@@ -38,7 +38,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <SignedIn>
               <Link
-                to="/dashboard"
+                to="/auth-redirect"
                 className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium mr-4"
               >
                 Dashboard
