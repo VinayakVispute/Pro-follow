@@ -14,7 +14,6 @@ import SignInPage from "./components/pages/SignIn";
 import AuthRedirectLayout from "./components/layout/AuthRedirect";
 import CommunicationCalendar from "./components/shared/Calendar";
 import { Notifications } from "./components/pages/Notifications";
-import { useState } from "react";
 
 function App() {
   return (
