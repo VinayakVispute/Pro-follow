@@ -6,7 +6,7 @@ import {
   deleteCompany,
   searchCompany,
   assignUserToCompany,
-} from "../controllers/companyController";
+} from "../controllers/admins/companyController";
 
 const router = express.Router();
 

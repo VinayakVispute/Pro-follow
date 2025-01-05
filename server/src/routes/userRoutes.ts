@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllUsersAsPerRole } from "../controllers/userController";
+import { getAllUsersAsPerRole } from "../controllers/admins/userController";
 const router = express.Router();
 
 router.get("/:role", getAllUsersAsPerRole);

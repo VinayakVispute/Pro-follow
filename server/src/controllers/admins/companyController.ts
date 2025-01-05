@@ -1,6 +1,6 @@
-import Company from "../models/Company";
+import Company from "../../models/Company";
 import { Request, Response } from "express";
-import User from "../models/User";
+import User from "../../models/User";
 
 // Create a new company
 export const createCompany = async (
