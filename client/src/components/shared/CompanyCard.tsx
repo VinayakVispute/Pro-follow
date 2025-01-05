@@ -7,6 +7,8 @@ import {
   MoreVertical,
   Trash2,
   Edit,
+  UserPlus,
+  UserCog,
 } from "lucide-react";
 import Popover from "./Popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import AddCompanyDialog from "./AddCompanyDialog";
+import { AssignDialog } from "./AssignDialog";
 
 interface Company {
   _id: string;
@@ -37,6 +40,11 @@ interface Company {
   phoneNumbers: string[];
   notes?: string;
   communicationPeriodicity: string;
+  assignedTo?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
 }
 
 interface CompanyCardProps {
@@ -44,6 +52,7 @@ interface CompanyCardProps {
   onUpdateNotes: (_id: string, notes: string) => void;
   onDeleteCompany: (_id: string) => void;
   onUpdateCompany: (_id: string, updatedCompany: Partial<Company>) => void;
+  onAssignCompany: (companyId: string, userId: string) => void;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
@@ -51,11 +60,14 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onUpdateNotes,
   onDeleteCompany,
   onUpdateCompany,
+  onAssignCompany,
 }) => {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [isContactsOpen, setIsContactsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+
   const viewMoreRef = useRef<HTMLButtonElement>(null);
   const editNoteRef = useRef<HTMLButtonElement>(null);
   const isRemainingContacts =
@@ -74,6 +86,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   const handleUpdateCompany = (updatedCompany: Partial<Company>) => {
     onUpdateCompany(company._id, updatedCompany);
     setIsEditDialogOpen(false);
+  };
+
+  const handleAssign = (userId: string) => {
+    onAssignCompany(company._id, userId);
+    setIsAssignDialogOpen(false);
   };
 
   const renderContactItem = (
@@ -105,7 +122,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
       </>
     );
   };
-
+  console.log(company);
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex flex-row justify-between items-center">
@@ -115,6 +132,13 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
             <MoreVertical className="w-4 h-4 text-gray-600" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => setIsAssignDialogOpen(true)}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Assign</span>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setIsEditDialogOpen(true)}
               className="flex items-center gap-2 cursor-pointer"
@@ -162,6 +186,16 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
           company.phoneNumbers,
           "phone"
         )}
+        <p className="flex items-center text-sm text-gray-500">
+          <UserCog className="w-4 h-4" />
+          <span className="ml-2">
+            {company.assignedTo
+              ? `${company.assignedTo.firstName} ${
+                  company.assignedTo.lastName || ""
+                }`.trim()
+              : "Not Assigned"}
+          </span>
+        </p>
         <button
           ref={viewMoreRef}
           onClick={() => setIsContactsOpen(true)}
@@ -254,12 +288,19 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       <AddCompanyDialog
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onAddCompany={handleUpdateCompany}
         initialData={company}
         mode="edit"
+      />
+
+      <AssignDialog
+        isOpen={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
+        onAssign={handleAssign}
       />
     </div>
   );

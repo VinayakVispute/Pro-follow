@@ -1,5 +1,6 @@
 import Company from "../models/Company";
 import { Request, Response } from "express";
+import User from "../models/User";
 
 // Create a new company
 export const createCompany = async (
@@ -65,7 +66,11 @@ export const getAllCompanies = async (
 ): Promise<void> => {
   console.log("getAllCompanies called");
   try {
-    const companies = await Company.find().sort({ createdAt: -1 }); // Sorted by creation date
+    const companies = await Company.find().sort({ createdAt: -1 }).populate({
+      path: "assignedTo",
+      model: User,
+      select: "firstName lastName _id",
+    }); // Sorted by creation date
     console.log("Companies fetched successfully:", companies);
     res.status(200).json({
       success: true,
@@ -219,5 +224,56 @@ export const searchCompany = async (
       message: error.message,
     });
     return;
+  }
+};
+
+export const assignUserToCompany = async (req: Request, res: Response) => {
+  try {
+    console.log("assignUserToCompany called with body:", req.body);
+    const { companyId, userId } = req.body;
+
+    if (!companyId || !userId) {
+      console.log("Validation failed: Company ID and User ID are required.");
+      res.status(400).json({
+        success: false,
+        message: "Company ID and User ID are required.",
+      });
+      return;
+    }
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+      console.log("Company not found with ID:", companyId);
+      res.status(404).json({
+        success: false,
+        message: "Company not found.",
+      });
+      return;
+    }
+    if (company.assignedTo === userId) {
+      console.log("User already assigned to the company:", userId);
+      res.status(400).json({
+        success: false,
+        message: "User already assigned to the company.",
+      });
+      return;
+    }
+    company.assignedTo = userId;
+
+    const updatedCompany = await company.save();
+    console.log("User assigned to company successfully:", updatedCompany);
+
+    res.status(200).json({
+      success: true,
+      message: "User assigned to company successfully.",
+      data: updatedCompany,
+    });
+  } catch (error: any) {
+    console.error("Error assigning user to company:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+      error: error.message,
+    });
   }
 };

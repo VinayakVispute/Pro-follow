@@ -26,6 +26,7 @@ const AdminDashboard: React.FC = () => {
     handleUpdateCompany,
     handleDeleteCompany,
     handleUpdateNotes,
+    handleAssignCompany,
   } = useCompanyContext();
 
   return (
@@ -121,6 +122,7 @@ const AdminDashboard: React.FC = () => {
             onUpdateNotes={handleUpdateNotes}
             onDeleteCompany={handleDeleteCompany}
             onUpdateCompany={handleUpdateCompany}
+            onAssignCompany={handleAssignCompany}
           />
         ))}
       </div>

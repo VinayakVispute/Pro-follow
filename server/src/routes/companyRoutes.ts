@@ -5,6 +5,7 @@ import {
   updateCompany,
   deleteCompany,
   searchCompany,
+  assignUserToCompany,
 } from "../controllers/companyController";
 
 const router = express.Router();
@@ -23,5 +24,8 @@ router.delete("/:id", deleteCompany);
 
 //Search the company
 router.get("/search", searchCompany);
+
+// assign a user to a company
+router.post("/assign", assignUserToCompany);
 
 export default router;

@@ -19,6 +19,7 @@ interface CompanyContextType {
   handleUpdateCompany: (id: string, updatedCompany: Partial<Company>) => void;
   handleDeleteCompany: (id: string) => void;
   handleUpdateNotes: (id: string, notes: string) => void;
+  handleAssignCompany: (companyId: string, userId: string) => void;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isSearchLoading: boolean;
@@ -151,6 +152,43 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const handleAssignCompany = async (companyId: string, userId: string) => {
+    console.log(
+      "handleAssignCompany: Assigning company ID:",
+      companyId,
+      "to user ID:",
+      userId
+    );
+    try {
+      const response = await apiClient.post("/api/companies/assign", {
+        userId: userId,
+        companyId: companyId,
+      });
+
+      if (!response.data.success) {
+        console.error(
+          "handleAssignCompany: Error assigning company:",
+          response.data.message
+        );
+        return;
+      }
+
+      console.log(
+        "handleAssignCompany: Successfully assigned company:",
+        response.data.data
+      );
+      setCompanies((prevCompanies) =>
+        prevCompanies.map((company) =>
+          company._id === companyId
+            ? { ...company, assignedTo: userId }
+            : company
+        )
+      );
+    } catch (error) {
+      console.error("handleAssignCompany: Error assigning company:", error);
+    }
+  };
+
   const handleUpdateCompany = async (
     id: string,
     updatedCompany: Partial<Company>
@@ -234,6 +272,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({
         handleUpdateCompany,
         handleDeleteCompany,
         handleUpdateNotes,
+        handleAssignCompany,
         isLoading,
         setIsLoading,
         isSearchLoading,
