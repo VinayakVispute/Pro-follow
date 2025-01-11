@@ -35,7 +35,7 @@ interface Company {
   _id: string;
   name: string;
   location: string;
-  linkedinProfile?: string;
+  linkedInProfile?: string;
   emails: string[];
   phoneNumbers: string[];
   notes?: string;
@@ -163,9 +163,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
         </p>
         <p className="flex items-center text-sm text-gray-500">
           <Linkedin className="w-4 h-4" />
-          {company.linkedinProfile ? (
+          {company.linkedInProfile ? (
             <a
-              href={company.linkedinProfile}
+              href={company.linkedInProfile}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline ml-2"

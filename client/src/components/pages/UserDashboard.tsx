@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,69 +10,58 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CommunicationModal } from "../shared/CommunicationModal";
-import { CompanyData, Communication } from "../../types";
+import { ICompanyDetailed, ICommunicationLog } from "../../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Bell } from "lucide-react";
+import { useApiClient } from "@/hooks/useApiClient";
+import Spinner from "../shared/Spinner";
+import { NotificationPanel } from "../shared/NotificationPanel";
 
-const mockData: CompanyData[] = [
-  {
-    id: "1",
-    name: "Tech Solutions Inc.",
-    lastFiveCommunications: [
-      {
-        type: "LinkedIn Post",
-        date: "2023-09-05",
-        notes: "Shared company update",
-      },
-      { type: "Email", date: "2023-08-20", notes: "Followed up on proposal" },
-      {
-        type: "Phone Call",
-        date: "2023-08-10",
-        notes: "Discussed partnership opportunities",
-      },
-      {
-        type: "LinkedIn Message",
-        date: "2023-07-25",
-        notes: "Introduced new product line",
-      },
-      { type: "Email", date: "2023-07-15", notes: "Sent initial proposal" },
-    ],
-    nextScheduledCommunication: { type: "LinkedIn Post", date: "2023-09-15" },
-    isOverdue: false,
-    isDueToday: true,
-  },
-  {
-    id: "2",
-    name: "Global Innovations Ltd.",
-    lastFiveCommunications: [
-      { type: "Email", date: "2023-09-01", notes: "Sent follow-up on meeting" },
-      {
-        type: "LinkedIn Message",
-        date: "2023-08-15",
-        notes: "Shared industry report",
-      },
-      { type: "Phone Call", date: "2023-08-05", notes: "Quarterly check-in" },
-      {
-        type: "Email",
-        date: "2023-07-20",
-        notes: "Introduced new team member",
-      },
-      {
-        type: "LinkedIn Post",
-        date: "2023-07-10",
-        notes: "Commented on company update",
-      },
-    ],
-    nextScheduledCommunication: { type: "Phone Call", date: "2023-09-10" },
-    isOverdue: true,
-    isDueToday: false,
-  },
-];
-
-const Dashboard: React.FC = () => {
-  const [companies, setCompanies] = useState<CompanyData[]>(mockData);
+const UserDashboard: React.FC = () => {
+  const [companies, setCompanies] = useState<ICompanyDetailed[]>([]);
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [communicationMethods, setCommunicationMethods] = useState([]);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+
+  const apiClient = useApiClient();
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const companiesResponsePromise = apiClient.get("/api/schedule/companies");
+      const communicationMethodsResponsePromise = apiClient.get("/api/methods");
+
+      const [companiesResponse, communicationMethods] = await Promise.all([
+        companiesResponsePromise,
+        communicationMethodsResponsePromise,
+      ]);
+
+      if (!companiesResponse.data.success) {
+        setCompanies([]);
+        setCommunicationMethods([]);
+        throw new Error(companiesResponse.data.message);
+      }
+
+      if (!communicationMethods.data.success) {
+        setCommunicationMethods([]);
+        throw new Error(communicationMethods.data.message);
+      }
+      setCommunicationMethods(communicationMethods.data.data);
+      // Process the response to include necessary fields
+
+      setCompanies(companiesResponse.data.data);
+      setLoading(false);
+    } catch (err: any) {
+      alert(err.message);
+      setLoading(false);
+    }
+  };
 
   const handleCompanySelect = (companyId: string) => {
     setSelectedCompanies((prev) =>
@@ -82,10 +71,13 @@ const Dashboard: React.FC = () => {
     );
   };
 
-  const handleCommunicationPerformed = (communication: Communication) => {
+  const handleCommunicationPerformed = async (
+    communication: ICommunicationLog
+  ) => {
+    // TODO: Implement API call to update communication
     setCompanies((prev) =>
       prev.map((company) => {
-        if (selectedCompanies.includes(company.id)) {
+        if (selectedCompanies.includes(company._id)) {
           return {
             ...company,
             lastFiveCommunications: [
@@ -103,16 +95,34 @@ const Dashboard: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const getOverdueCount = () => companies.filter((c) => c.isOverdue).length;
+  const getDueTodayCount = () => companies.filter((c) => c.isDueToday).length;
+
+  if (loading) return <Spinner />;
+
   return (
-    <div className="space-y-6 bg-white">
+    <div className="space-y-6 bg-white p-6">
       <div className="flex justify-between items-center">
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          disabled={selectedCompanies.length === 0}
-        >
-          Log Communication
-        </Button>
+        <h1 className="text-2xl font-bold">Company Dashboard</h1>
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            disabled={selectedCompanies.length === 0}
+          >
+            Log Communication
+          </Button>
+          <button
+            className="relative"
+            onClick={() => setIsNotificationPanelOpen(true)}
+          >
+            <Bell className="h-6 w-6" />
+            <Badge className="absolute -top-2 -right-2 px-2 py-1">
+              {getOverdueCount() + getDueTodayCount()}
+            </Badge>
+          </button>
+        </div>
       </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Company Communications</CardTitle>
@@ -130,31 +140,48 @@ const Dashboard: React.FC = () => {
             </TableHeader>
             <TableBody>
               {companies.map((company) => (
-                <TableRow key={company.id}>
+                <TableRow
+                  key={company._id}
+                  className={
+                    company.isOverdue
+                      ? "bg-red-100"
+                      : company.isDueToday
+                      ? "bg-yellow-100"
+                      : ""
+                  }
+                >
                   <TableCell>
                     <Checkbox
-                      checked={selectedCompanies.includes(company.id)}
-                      onCheckedChange={() => handleCompanySelect(company.id)}
+                      checked={selectedCompanies.includes(company._id)}
+                      onCheckedChange={() => handleCompanySelect(company._id)}
                     />
                   </TableCell>
                   <TableCell className="font-medium">{company.name}</TableCell>
                   <TableCell>
                     <ul className="space-y-1">
-                      {company.lastFiveCommunications.map((comm, index) => (
-                        <li key={index} className="text-sm" title={comm.notes}>
-                          <Badge variant="outline" className="mr-2">
-                            {comm.type}
-                          </Badge>
-                          {new Date(comm.date).toLocaleDateString()}
-                        </li>
-                      ))}
+                      {company.lastFiveCommunications.map(
+                        (comm: ICommunicationLog, index: number) => (
+                          <li
+                            key={index}
+                            className="text-sm"
+                            title={comm.notes ?? undefined}
+                          >
+                            <Badge variant="outline" className="mr-2">
+                              {comm.method.name}
+                            </Badge>
+                            {new Date(comm.createdAt).toLocaleDateString()}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="mr-2">
-                      {company.nextScheduledCommunication.type}
+                      {/* @ts-ignore */}
+                      {company.nextScheduledCommunication.name}
                     </Badge>
                     {new Date(
+                      //  @ts-ignore
                       company.nextScheduledCommunication.date
                     ).toLocaleDateString()}
                   </TableCell>
@@ -163,7 +190,9 @@ const Dashboard: React.FC = () => {
                       <Badge variant="destructive">Overdue</Badge>
                     )}
                     {company.isDueToday && (
-                      <Badge variant="destructive">Due Today</Badge>
+                      <Badge variant="default" color="yellow">
+                        Due Today
+                      </Badge>
                     )}
                     {!company.isOverdue && !company.isDueToday && (
                       <Badge variant="secondary">On Track</Badge>
@@ -175,13 +204,20 @@ const Dashboard: React.FC = () => {
           </Table>
         </CardContent>
       </Card>
+
       <CommunicationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCommunicationPerformed}
+        communicationMethods={communicationMethods}
+      />
+      <NotificationPanel
+        isOpen={isNotificationPanelOpen}
+        onClose={() => setIsNotificationPanelOpen(false)}
+        companies={companies}
       />
     </div>
   );
 };
 
-export default Dashboard;
+export default UserDashboard;

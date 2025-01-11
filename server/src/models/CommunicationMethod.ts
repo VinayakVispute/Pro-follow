@@ -1,6 +1,17 @@
-import mongoose from "mongoose";
+import mongoose, { Types, Model } from "mongoose";
 
-const communicationMethodSchema = new mongoose.Schema(
+
+export interface ICommunicationMethod {
+    _id: Types.ObjectId;
+    name: string;
+    description?: string;
+    sequence: number;
+    mandatory: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+const communicationMethodSchema = new mongoose.Schema<ICommunicationMethod>(
     {
         name: {
             type: String,
@@ -24,10 +35,8 @@ const communicationMethodSchema = new mongoose.Schema(
     }
 );
 
-const CommunicationMethod = mongoose.model(
-    "CommunicationMethod",
-    communicationMethodSchema
-);
+const CommunicationMethod: Model<ICommunicationMethod> = mongoose.model<ICommunicationMethod>('CommunicationMethod', communicationMethodSchema);
+
 
 export default CommunicationMethod;
 

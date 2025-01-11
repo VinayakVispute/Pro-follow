@@ -1,9 +1,7 @@
 import { useClerk, useUser } from "@clerk/clerk-react";
 
 import {
-  Bell,
   Calendar,
-  FileText,
   HelpCircle,
   Home,
   LogOut,
@@ -47,8 +45,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const userMenuItems: MenuItem[] = [
     { icon: Home, name: "Home", path: "/Home" },
     { icon: Calendar, name: "Calendar", path: "/Calendar" },
-    { icon: Bell, name: "Notifications", path: "/Notifications" },
-    { icon: FileText, name: "Logs", path: "/Logs" },
     { icon: User, name: "Profile", path: "/Profile" },
     { icon: HelpCircle, name: "Help", path: "/Help" },
   ];

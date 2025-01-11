@@ -6,6 +6,7 @@ import connectDB from "./config/database";
 import { clerkMiddleware } from "@clerk/express";
 import companyRoutes from "./routes/companyRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
+import CommuncationMethodsControllersRoutes from "./routes/CommuncationMethodsControllersRoutes";
 import userRoutes from "./routes/userRoutes";
 import { ensureAdminRole } from "./middleware/authenticateRoutes";
 
@@ -28,6 +29,11 @@ app.use("/webhooks", webhookRoutes);
 app.use("/api/companies", ensureAdminRole(true), companyRoutes);
 app.use("/api/users", ensureAdminRole(true), userRoutes);
 app.use("/api/schedule", ensureAdminRole(false), scheduleRoutes);
+app.use(
+  "/api/methods",
+  ensureAdminRole(false),
+  CommuncationMethodsControllersRoutes
+);
 
 app.get("/", (req, res) => {
   res.send("Hello World!! Server is up and running!");

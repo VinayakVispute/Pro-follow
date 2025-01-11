@@ -6,7 +6,7 @@ export const ensureAdminRole = (isAdminRequired: boolean) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     // @ts-ignore
     const { userId, sessionClaims } = req.auth || {};
-    const role = sessionClaims?.metadata?.role; // Accessing role from publicMetadata
+    const role = sessionClaims?.metadata?.public?.role; // Accessing role from publicMetadata
 
     if (!userId) {
       res.status(401).json({

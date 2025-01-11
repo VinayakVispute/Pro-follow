@@ -24,7 +24,7 @@ interface Company {
   _id: string;
   name: string;
   location: string;
-  linkedinProfile?: string;
+  linkedInProfile?: string;
   emails: string[];
   phoneNumbers: string[];
   notes?: string;
@@ -49,7 +49,7 @@ export default function AddCompanyDialog({
   const [formData, setFormData] = useState<Partial<Company>>({
     name: "",
     location: "",
-    linkedinProfile: "",
+    linkedInProfile: "",
     emails: [""],
     phoneNumbers: [""],
     communicationPeriodicity: "monthly",
@@ -63,7 +63,7 @@ export default function AddCompanyDialog({
       setFormData({
         name: "",
         location: "",
-        linkedinProfile: "",
+        linkedInProfile: "",
         emails: [""],
         phoneNumbers: [""],
         communicationPeriodicity: "monthly",
@@ -170,11 +170,11 @@ export default function AddCompanyDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
+            <Label htmlFor="linkedInProfile">LinkedIn Profile</Label>
             <Input
-              id="linkedinProfile"
-              name="linkedinProfile"
-              value={formData.linkedinProfile}
+              id="linkedInProfile"
+              name="linkedInProfile"
+              value={formData.linkedInProfile}
               onChange={handleInputChange}
               placeholder="https://www.linkedin.com/company/..."
             />

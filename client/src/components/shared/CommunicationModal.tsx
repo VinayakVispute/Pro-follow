@@ -17,18 +17,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Communication } from "../../types";
+import { ICommunicationLog } from "../../types";
 
 interface CommunicationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (communication: Communication) => void;
+  onSubmit: (communication: ICommunicationLog) => void;
+  communicationMethods: any;
 }
 
 export const CommunicationModal: React.FC<CommunicationModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  communicationMethods,
 }) => {
   const [type, setType] = useState("");
   const [date, setDate] = useState("");
@@ -36,6 +38,7 @@ export const CommunicationModal: React.FC<CommunicationModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    //@ts-ignore
     onSubmit({ type, date, notes });
     setType("");
     setDate("");
@@ -59,12 +62,11 @@ export const CommunicationModal: React.FC<CommunicationModalProps> = ({
                   <SelectValue placeholder="Select communication type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="LinkedIn Post">LinkedIn Post</SelectItem>
-                  <SelectItem value="LinkedIn Message">
-                    LinkedIn Message
-                  </SelectItem>
-                  <SelectItem value="Email">Email</SelectItem>
-                  <SelectItem value="Phone Call">Phone Call</SelectItem>
+                  {communicationMethods.map((method: any) => (
+                    <SelectItem key={method.id} value={method.name}>
+                      {method.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

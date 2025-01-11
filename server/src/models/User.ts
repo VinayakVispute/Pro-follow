@@ -1,4 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Types, Model } from "mongoose";
+
+export interface IUser {
+  _id: Types.ObjectId;
+  clerkId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl: string;
+  role: "user" | "admin";
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const userSchema = new mongoose.Schema(
   {
@@ -35,6 +47,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);
 
 export default User;

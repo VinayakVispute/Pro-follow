@@ -1,4 +1,23 @@
-import mongoose from "mongoose";
+import mongoose, { Types, Model } from "mongoose";
+
+export interface ICompany {
+  _id: Types.ObjectId;
+  name: string;
+  location: string;
+  linkedInProfile: string | null;
+  emails: string[];
+  phoneNumbers: string[];
+  notes?: string;
+  communicationPeriodicity:
+    | "weekly"
+    | "biweekly"
+    | "monthly"
+    | "quarterly"
+    | "yearly";
+  assignedTo?: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const companySchema = new mongoose.Schema(
   {
@@ -15,7 +34,6 @@ const companySchema = new mongoose.Schema(
       required: false,
       default: null,
     },
-
     emails: {
       type: [String],
       required: true,
@@ -52,6 +70,9 @@ const companySchema = new mongoose.Schema(
   }
 );
 
-const Company = mongoose.model("Company", companySchema);
+const Company: Model<ICompany> = mongoose.model<ICompany>(
+  "Company",
+  companySchema
+);
 
 export default Company;

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { CommunicationMethodList } from "../shared/CommunicationMethodList";
 import { AddEditCommunicationMethodDialog } from "../shared/AddEditCommunicationMethodDialog";
 import { DeleteConfirmationDialog } from "../shared/DeleteConfirmationDialog";
+import { useApiClient } from "@/hooks/useApiClient";
+import Spinner from "../shared/Spinner";
 
 interface CommunicationMethod {
   id: string;
@@ -13,87 +15,100 @@ interface CommunicationMethod {
   mandatory: boolean;
 }
 
-const defaultMethods: CommunicationMethod[] = [
-  {
-    id: "1",
-    name: "LinkedIn Post",
-    description: "Post on LinkedIn",
-    sequence: 1,
-    mandatory: false,
-  },
-  {
-    id: "2",
-    name: "LinkedIn Message",
-    description: "Direct LinkedIn message",
-    sequence: 2,
-    mandatory: true,
-  },
-  {
-    id: "3",
-    name: "Email",
-    description: "Send an email",
-    sequence: 3,
-    mandatory: true,
-  },
-  {
-    id: "4",
-    name: "Phone Call",
-    description: "Call the company",
-    sequence: 4,
-    mandatory: false,
-  },
-  {
-    id: "5",
-    name: "Other",
-    description: "Custom communication",
-    sequence: 5,
-    mandatory: false,
-  },
-];
-
 export default function CommunicationMethodsPage() {
-  const [methods, setMethods] = useState<CommunicationMethod[]>(defaultMethods);
+  const [methods, setMethods] = useState<CommunicationMethod[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMethod, setEditingMethod] =
     useState<CommunicationMethod | null>(null);
   const [deletingMethod, setDeletingMethod] =
     useState<CommunicationMethod | null>(null);
 
-  const handleAddMethod = (newMethod: Omit<CommunicationMethod, "id">) => {
-    const id = Date.now().toString();
-    setMethods([...methods, { ...newMethod, id }]);
-  };
+  const apiClient = useApiClient();
 
-  const handleUpdateMethod = (updatedMethod: CommunicationMethod) => {
-    setMethods(
-      methods.map((method) =>
-        method.id === updatedMethod.id ? updatedMethod : method
-      )
-    );
-  };
+  useEffect(() => {
+    fetchMethods();
+  }, []);
 
-  const handleDeleteMethod = (id: string) => {
-    setMethods(methods.filter((method) => method.id !== id));
-  };
-
-  const handleMoveMethod = (id: string, direction: "up" | "down") => {
-    const index = methods.findIndex((method) => method.id === id);
-    if (
-      (direction === "up" && index > 0) ||
-      (direction === "down" && index < methods.length - 1)
-    ) {
-      const newMethods = [...methods];
-      const [movedMethod] = newMethods.splice(index, 1);
-      newMethods.splice(
-        direction === "up" ? index - 1 : index + 1,
-        0,
-        movedMethod
-      );
-      setMethods(
-        newMethods.map((method, i) => ({ ...method, sequence: i + 1 }))
-      );
+  const fetchMethods = async () => {
+    try {
+      const response = await apiClient.get("/api/methods");
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      setMethods(response.data.data);
+    } catch (err: any) {
+      console.log("This is error", err);
+      throw new Error(err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleAddMethod = async (
+    newMethod: Omit<CommunicationMethod, "id">
+  ) => {
+    try {
+      const response = await apiClient.post("/api/methods", newMethod);
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      setMethods([...methods, response.data.data]);
+    } catch (err: any) {
+      console.log("This is error", err);
+      throw new Error(err);
+    }
+  };
+
+  const handleUpdateMethod = async (updatedMethod: CommunicationMethod) => {
+    try {
+      const response = await apiClient.put(
+        `/api/methods/${updatedMethod.id}`,
+        updatedMethod
+      );
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      setMethods(
+        methods.map((method) =>
+          method.id === updatedMethod.id ? response.data.data : method
+        )
+      );
+    } catch (err: any) {
+      console.log("This is error", err);
+      throw new Error(err);
+    }
+  };
+
+  const handleDeleteMethod = async (id: string) => {
+    try {
+      const response = await apiClient.delete(`/api/methods/${id}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      setMethods(methods.filter((method) => method.id !== id));
+    } catch (err: any) {
+      console.log("This is error", err);
+      throw new Error(err);
+    }
+  };
+
+  const handleMoveMethod = async (id: string, direction: "up" | "down") => {
+    try {
+      const response = await apiClient.put(`/api/methods/move/${id}`, {
+        direction,
+      });
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      setMethods(response.data.data);
+    } catch (err: any) {
+      console.log("This is error", err);
+      throw new Error(err);
+    }
+  };
+
+  if (loading) return <Spinner />;
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">

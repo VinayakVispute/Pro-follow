@@ -72,6 +72,7 @@ export const getAllCompanies = async (
       select: "firstName lastName _id",
     }); // Sorted by creation date
     console.log("Companies fetched successfully:", companies);
+
     res.status(200).json({
       success: true,
       data: companies,

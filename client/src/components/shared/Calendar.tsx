@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -9,6 +9,9 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useApiClient } from "@/hooks/useApiClient";
+import { ICompanyDetailed, ICommunicationLog } from "@/types";
+import Spinner from "@/components/shared/Spinner";
 
 interface Event {
   id: string;
@@ -20,44 +23,89 @@ interface Event {
   end?: string;
 }
 
-const CommunicationCalendar = () => {
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: "1",
-      title: "Conference",
-      start: "2025-01-01",
-      description: "Annual tech conference",
-      className: "bg-blue-500",
-      allDay: true,
-    },
-
-    {
-      id: "3",
-      title: "Lunch",
-      start: "2025-01-02T12:00:00",
-      description: "Team lunch",
-      className: "bg-green-500",
-    },
-    {
-      id: "4",
-      title: "Long Event",
-      start: "2025-01-07",
-      end: "2025-01-10",
-      description: "Multi-day workshop",
-      className: "bg-blue-500",
-      allDay: true,
-    },
-    {
-      id: "5",
-      title: "Repeating Event",
-      start: "2025-01-09T16:00:00",
-      description: "Weekly team sync",
-      className: "bg-purple-500",
-    },
-  ]);
-
+const CommunicationCalendar: React.FC = () => {
+  const [events, setEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const apiClient = useApiClient();
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await apiClient.get("/api/schedule/companies");
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      const companies: ICompanyDetailed[] = response.data.data;
+      const calendarEvents = generateEventsFromCompanies(companies);
+      setEvents(calendarEvents);
+      setLoading(false);
+    } catch (err: any) {
+      console.error("Error fetching companies:", err);
+      setLoading(false);
+    }
+  };
+
+  const generateEventsFromCompanies = (
+    companies: ICompanyDetailed[]
+  ): Event[] => {
+    const events: Event[] = [];
+
+    companies.forEach((company) => {
+      // Add next scheduled communication
+      events.push({
+        id: `next-${company._id}`,
+        // @ts-ignore
+        title: `${company.name} - ${company.nextScheduledCommunication.name}`,
+        // @ts-ignore
+
+        start: company.nextScheduledCommunication.date,
+        description: `Next scheduled communication for ${company.name}`,
+        className: "bg-blue-500",
+      });
+
+      // Add overdue communication if applicable
+      if (company.isOverdue) {
+        events.push({
+          id: `overdue-${company._id}`,
+          title: `${company.name} - Overdue`,
+          start: new Date().toISOString(), // Set to today
+          description: `Overdue communication for ${company.name}`,
+          className: "bg-red-500",
+        });
+      }
+
+      // Add due today communication if applicable
+      if (company.isDueToday) {
+        events.push({
+          id: `duetoday-${company._id}`,
+          title: `${company.name} - Due Today`,
+          start: new Date().toISOString(),
+          description: `Communication due today for ${company.name}`,
+          className: "bg-yellow-500",
+        });
+      }
+
+      // Add last five communications
+      company.lastFiveCommunications.forEach(
+        (comm: ICommunicationLog, index: number) => {
+          events.push({
+            id: `last-${company._id}-${index}`,
+            title: `${company.name} - ${comm.method.name}`,
+            start: new Date(comm.createdAt).toISOString(),
+            description: comm.notes || `Past communication for ${company.name}`,
+            className: "bg-green-500",
+          });
+        }
+      );
+    });
+
+    return events;
+  };
 
   const filteredEvents = events.filter(
     (event) =>
@@ -65,26 +113,13 @@ const CommunicationCalendar = () => {
       event.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDateClick = (info: any) => {
-    const title = prompt("Enter Event Title:");
-    if (title) {
-      setEvents([
-        ...events,
-        {
-          id: Date.now().toString(),
-          title,
-          start: info.dateStr,
-          className: "bg-blue-500",
-        },
-      ]);
-    }
-  };
-
   const handleEventClick = (info: EventClickArg) => {
     alert(
       `Event: ${info.event.title}\nDetails: ${info.event.extendedProps.description}`
     );
   };
+
+  if (loading) return <Spinner />;
 
   return (
     <div className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
@@ -220,9 +255,8 @@ const CommunicationCalendar = () => {
           },
         }}
         events={filteredEvents}
-        dateClick={handleDateClick}
         eventClick={handleEventClick}
-        editable={true}
+        editable={false}
         selectable={true}
         selectMirror={true}
         dayMaxEvents={true}

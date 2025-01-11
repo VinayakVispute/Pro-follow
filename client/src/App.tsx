@@ -13,7 +13,6 @@ import SignUpPage from "./components/pages/SignUp";
 import SignInPage from "./components/pages/SignIn";
 import AuthRedirectLayout from "./components/layout/AuthRedirect";
 import CommunicationCalendar from "./components/shared/Calendar";
-import { Notifications } from "./components/pages/Notifications";
 
 function App() {
   return (
@@ -59,14 +58,6 @@ function App() {
           element={
             <AdminLayout>
               <CommunicationMethodsPage />
-            </AdminLayout>
-          }
-        />
-        <Route
-          path="/Notifications"
-          element={
-            <AdminLayout>
-              <Notifications />
             </AdminLayout>
           }
         />
